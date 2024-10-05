@@ -3,6 +3,10 @@ const db = require('../db/index')
 // 导入bcryptjs模块, 用于对用户密码进行加密
 const bcrypt = require('bcryptjs')
 
+// 导入生成token的模块
+const jwt = require('jsonwebtoken')
+const config = require('../config')
+
 // 注册
 exports.register = (req, res) => {
   const userinfo = req.body
@@ -46,9 +50,13 @@ exports.login = (req, res) => {
     const compareResult = await bcrypt.compareSync(userinfo.password, data[0].password)
     if (!compareResult) return res.cc('登录失败')
 
-    // 登录成功
-    req.session.user = data[0]
-    req.session.isLogin = true
-    res.cc('登录成功', 0)
+    // 生成token
+    const user = { ...data[0], password: '', user_pic: '' }
+    const tokenStr = jwt.sign(user, config.jwtSecretKey, { expiresIn: config.expiresIn })
+    res.send({
+      status: 0,
+      message: '登录成功',
+      token: 'Bearer ' + tokenStr
+    })
   })
 }
