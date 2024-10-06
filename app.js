@@ -49,5 +49,5 @@ app.use((err, req, res, next) => {
 app.listen(3006, () => {
   console.log("Server is running on port 3006")
 }).on('error', (err) => {
-  console.error('Server error:', err) // 添加这行以在控制台输出启动错误
+  console.error('Server error:', err)
 })
