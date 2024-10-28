@@ -17,4 +17,8 @@ router.post('/updatepwd', expressJoi(update_password_schema), userinfo_handler.u
 // 更新头像路由
 router.post('/update/avatar', expressJoi(update_avatar_schema), userinfo_handler.updateAvatar)
 
+// 获取团队信息路由
+router.get('/teaminfo', userinfo_handler.getTeamInfo)
+
+
 module.exports = router

@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs')
 
 // 获取用户信息
 exports.getUserinfo = (req, res) => {
-  const sql = 'select id, username, nickname, email, user_pic from ev_users where id=?'
+  const sql = 'select id, username, nickname, email, user_pic,id_card from ev_users where id=?'
   db.query(sql, req.auth.id, (err, data) => {
     if (err) return res.cc(err)
     if (data.length !== 1) return res.cc('获取用户信息失败')
@@ -53,5 +53,18 @@ exports.updateAvatar = (req, res) => {
     if (err) return res.cc(err)
     if (data.affectedRows !== 1) return res.cc('更新头像失败')
     res.cc('更新头像成功', 0)
+  })
+}
+
+// 根据userId获取团队信息
+exports.getTeamInfo = (req, res) => {
+  const sql = 'select * from team_info where userId=?'
+  db.query(sql, req.auth.id, (err, data) => {
+    if (err) return res.cc(err)
+    res.send({
+      status: 0,
+      message: '获取团队信息成功',
+      data: data
+    })
   })
 }

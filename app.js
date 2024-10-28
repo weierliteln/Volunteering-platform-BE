@@ -3,12 +3,17 @@ const app = express()
 const joi = require('joi')
 
 
-// 配置跨域cors中间件
-const cors = require('cors')
-app.use(cors())
+
 
 // 配置解析表单数据中间件
 app.use(express.urlencoded({ extended: false }))
+
+// 配置解析json数据的中间件
+app.use(express.json())
+
+// 配置跨域cors中间件
+const cors = require('cors')
+app.use(cors())
 
 // 封装res.cc函数
 app.use((req, res, next) => {
@@ -26,7 +31,9 @@ const config = require('./config')
 const { expressjwt } = require('express-jwt')
 app.use(expressjwt({
   secret: config.jwtSecretKey, algorithms: ["HS256"]
-}).unless({ path: [/^\/api/] }))
+}).unless({
+  path: [/^\/api/, /^\/activity/, /^\/team/]
+}))
 
 // 导入用户路由模块
 const userRouter = require('./router/user')
@@ -35,6 +42,16 @@ app.use('/api', userRouter)
 // 导入用户信息路由模块
 const userinfoRuoter = require('./router/userinfo')
 app.use('/user', userinfoRuoter)
+
+
+// 导入活动路由模块
+const activityRouter = require('./router/activity')
+app.use('/activity', activityRouter)
+
+// 导入团队路由模块
+const teamRouter = require('./router/team')
+app.use('/team', teamRouter)
+
 
 // 错误中间件
 app.use((err, req, res, next) => {
