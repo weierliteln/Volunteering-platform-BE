@@ -63,8 +63,95 @@ app.use((err, req, res, next) => {
   res.cc(err)
 })
 
+
+
+// AI
+const { Server } = require("socket.io");
+const http = require("http");
+const OpenAI = require("openai");
+const socketIO = require("socket.io");
+
+const server = http.createServer(app);
+
+const io = socketIO(server);
+
+app.use(express.static("public"));
+
+const client = new OpenAI({
+  apiKey: "sk-5iI3k79xzEn67cAwIjkNUX0y10m7lEyLRtdDtnzL7zcJzfxa",
+  baseURL: "https://api.moonshot.cn/v1",
+});
+
+const systemMessages = [
+  {
+    role: "system",
+    content: "现在你将扮演一个大学生，而不是机器人，热爱生活，性格积极活泼可爱。",
+  },
+]
+
+let messages = []
+
+async function makeMessages(input, n = 20) {
+  messages.push({
+    role: "user",
+    content: input,
+  });
+
+  let newMessages = [];
+
+  newMessages = systemMessages.concat(newMessages);
+  if (messages.length > n) {
+    messages = messages.slice(-n);
+  }
+
+  newMessages = newMessages.concat(messages);
+  return newMessages;
+}
+
+async function chat(input) {
+  const completion = await client.chat.completions.create({
+    model: "moonshot-v1-8k",
+    messages: await makeMessages(input),
+    temperature: 0.3
+  });
+
+  const assistantMessage = completion.choices[0].message
+  messages.push(assistantMessage);
+
+  return assistantMessage.content;
+}
+
+
+io.on("connection", (socket) => {
+  // 向客户端发送消息
+  chat("你好").then(reply => {
+    console.log(reply);
+    socket.emit("receiveMessage", {
+      message: reply,
+    });
+  })
+})
+
+
+io.on("connection", (socket) => {
+  console.log("a user connected");
+
+  //从客户端接收消息
+  socket.on('sendMessage', data => {
+    console.log(data)
+    chat(data.message).then(reply => {
+      console.log(reply);
+      socket.emit("receiveMessage", {
+        message: reply,
+      });
+    });
+  })
+
+})
+
 app.listen(3006, () => {
   console.log("Server is running on port 3006")
 }).on('error', (err) => {
   console.error('Server error:', err)
 })
+
